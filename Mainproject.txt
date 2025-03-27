@@ -1,0 +1,189 @@
+import java.util.Scanner;
+
+public class FinancialPlanningToolkit {
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Welcome to the Financial Planning Toolkit!");
+        System.out.println("Please select a calculator:");
+        System.out.println("1. Mortgage Calculator");
+        System.out.println("2. Investment Return Calculator");
+        System.out.println("3. Savings Goal Calculator");
+        System.out.println("4. Income Tax Calculator");
+        System.out.println("5. Exit");
+
+        
+        int choice = scanner.nextInt();
+        scanner.nextLine();  // Consume newline character
+
+        switch (choice) {
+            case 1:
+                mortgageCalculator(scanner);
+                break;
+            case 2:
+                investmentReturnCalculator(scanner);
+                break;
+            case 3:
+                savingsGoalCalculator(scanner);
+                break;
+            case 4:
+                incomeTaxCalculator(scanner);
+                break;
+            case 5:
+                System.out.println("Exiting the toolkit. Goodbye!");
+                break;
+            default:
+                System.out.println("Invalid choice. Please try again.");
+                break;
+        }
+
+        scanner.close();
+    }
+
+    
+    public static void mortgageCalculator(Scanner scanner) {
+        System.out.print("Enter loan amount ($): ");
+        double loanAmount = scanner.nextDouble();
+
+        System.out.print("Enter annual interest rate (%): ");
+        double annualInterestRate = scanner.nextDouble();
+
+        System.out.print("Enter loan term (in years): ");
+        int loanTermYears = scanner.nextInt();
+
+      
+        double monthlyPayment = calculateMortgagePayment(loanAmount, annualInterestRate, loanTermYears);
+
+        System.out.printf("Your monthly mortgage payment is: $%.2f%n", monthlyPayment);
+    }
+
+        public static double calculateMortgagePayment(double loanAmount, double annualInterestRate, int loanTermYears) {
+        double monthlyInterestRate = annualInterestRate / 100 / 12;
+        int numberOfPayments = loanTermYears * 12;
+
+        return (loanAmount * monthlyInterestRate) / (1 - Math.pow(1 + monthlyInterestRate, -numberOfPayments));
+    }
+
+    
+    public static void investmentReturnCalculator(Scanner scanner) {
+        System.out.print("Enter initial investment ($): ");
+        double initialInvestment = scanner.nextDouble();
+
+        System.out.print("Enter expected annual rate of return (%): ");
+        double annualRateOfReturn = scanner.nextDouble();
+
+        System.out.print("Enter investment time horizon (in years): ");
+        int years = scanner.nextInt();
+
+        // Calculate the future value of the investment
+        double futureValue = calculateInvestmentReturn(initialInvestment, annualRateOfReturn, years);
+
+        System.out.printf("The future value of your investment is: $%.2f%n", futureValue);
+    }
+
+    
+    public static double calculateInvestmentReturn(double initialInvestment, double annualRateOfReturn, int years) {
+        double monthlyRate = (annualRateOfReturn / 100) / 12;
+        int months = years * 12;
+
+        return initialInvestment * Math.pow(1 + monthlyRate, months);
+    }
+
+        public static void savingsGoalCalculator(Scanner scanner) {
+        System.out.print("Enter your savings goal amount ($): ");
+        double goalAmount = scanner.nextDouble();
+
+        System.out.print("Enter your time frame in years: ");
+        int timeFrameYears = scanner.nextInt();
+
+        System.out.print("Enter the expected annual rate of return (%): ");
+        double annualRate = scanner.nextDouble();
+
+        double monthlyInvestment = calculateMonthlyInvestment(goalAmount, timeFrameYears, annualRate);
+
+        if (monthlyInvestment >= 0) {
+            System.out.printf("You need to invest $%.2f per month to reach your goal of $%.2f in %d years.%n", 
+                monthlyInvestment, goalAmount, timeFrameYears);
+        } else {
+            System.out.println("Invalid input! Please ensure your goal amount and rate are realistic.");
+        }
+    }
+
+
+    public static double calculateMonthlyInvestment(double goalAmount, int years, double annualRate) {
+        double monthlyRate = (annualRate / 100) / 12;
+        int months = years * 12;
+
+        if (monthlyRate == 0) {
+            return goalAmount / months;
+        }
+
+        double numerator = goalAmount * monthlyRate;
+        double denominator = Math.pow(1 + monthlyRate, months) - 1;
+
+        if (denominator == 0) {
+            return -1;
+        }
+
+        return numerator / denominator;
+    }
+
+   
+    public static void incomeTaxCalculator(Scanner scanner) {
+        System.out.print("Enter your annual income ($): ");
+        double income = scanner.nextDouble();
+
+        System.out.print("Enter your filing status (single/married): ");
+        String filingStatus = scanner.next().toLowerCase();
+
+        System.out.print("Enter your total deductions ($): ");
+        double deductions = scanner.nextDouble();
+
+        System.out.print("Enter your tax credits ($): ");
+        double taxCredits = scanner.nextDouble();
+
+        double taxLiability = calculateTax(income, filingStatus, deductions, taxCredits);
+
+        System.out.printf("Your estimated tax liability is: $%.2f%n", taxLiability);
+    }
+
+   
+    public static double calculateTax(double income, String filingStatus, double deductions, double taxCredits) {
+        double taxableIncome = income - deductions;
+
+        double[] singleSlabs = {9950, 40525, 86375, 164925, 209425, 523600};
+        double[] singleRates = {0.1, 0.12, 0.22, 0.24, 0.32, 0.35, 0.37};
+
+        double[] marriedSlabs = {19900, 81050, 172750, 329850, 418850, 628300};
+        double[] marriedRates = {0.1, 0.12, 0.22, 0.24, 0.32, 0.35, 0.37};
+
+        double[] slabs = filingStatus.equals("single") ? singleSlabs : marriedSlabs;
+        double[] rates = filingStatus.equals("single") ? singleRates : marriedRates;
+
+        double tax = 0;
+        double prevSlabLimit = 0;
+
+        for (int i = 0; i < slabs.length; i++) {
+            if (taxableIncome > slabs[i]) {
+                tax += (slabs[i] - prevSlabLimit) * rates[i];
+                prevSlabLimit = slabs[i];
+            } else {
+                tax += (taxableIncome - prevSlabLimit) * rates[i];
+                break;
+            }
+        }
+
+        if (taxableIncome > slabs[slabs.length - 1]) {
+            tax += (taxableIncome - slabs[slabs.length - 1]) * rates[slabs.length];
+        }
+
+        tax -= taxCredits;
+
+        if (tax < 0) {
+            tax = 0;
+        }
+
+        return tax;
+    }
+}
